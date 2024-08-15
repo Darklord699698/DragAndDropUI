@@ -1,97 +1,60 @@
 import React, { useState } from "react";
 import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
-import Modal from "react-modal";
 import "react-resizable/css/styles.css";
 
-// Define custom styles for the modal
-const modalStyles = {
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    maxWidth: '400px',
-    borderRadius: '20px',
-    padding: '20px',
-  }
-};
-
-const Card = ({ id, initialTitle = "", initialDescription = "", initialText = "" }) => {
+const Card = ({ id, initialTitle = "", initialText = "" }) => {
   const [title, setTitle] = useState(initialTitle);
-  const [description, setDescription] = useState(initialDescription);
   const [text, setText] = useState(initialText);
-  const [showModal, setShowModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Ensure text is defined
-  const previewText = text ? text.substring(0, Math.floor(text.length / 2)) : "";
+  const toggleExpandText = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const showMoreRequired = text.length > 100; // Adjust this length to suit your needs
 
   return (
     <Draggable>
-      <div className="w-64 h-96 bg-white rounded-3xl shadow-lg overflow-hidden flex flex-col">
+      <div className="flex flex-col w-64 h-auto overflow-hidden bg-white shadow-lg rounded-3xl">
         {/* Heading Bar */}
-        <div className="bg-gray-800 text-white p-3 rounded-t-3xl flex items-center justify-between">
+        <div className="flex items-center justify-between p-3 text-white bg-gray-800 rounded-t-3xl">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-lg font-semibold bg-transparent border-none outline-none w-full"
+            className="w-full text-lg font-semibold bg-transparent border-none outline-none"
             placeholder="Enter title"
           />
         </div>
 
         <ResizableBox
           width={256}
-          height={384}
-          minConstraints={[200, 300]}
-          className="resize overflow-hidden bg-white rounded-b-3xl shadow-md"
+          height={200}
+          minConstraints={[200, 200]}
+          className="overflow-hidden bg-white shadow-md resize rounded-b-3xl"
         >
           <div className="flex flex-col h-full p-4">
-            {/* Description */}
+            {/* Editable Text Area */}
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="text-gray-600 mb-4 border rounded p-2"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="w-full h-full mb-4 text-gray-600 border-none outline-none resize-none"
               placeholder="Enter description"
+              style={{ height: isExpanded ? "auto" : "60px", overflow: "hidden" }}
             />
 
-            {/* Preview Text */}
-            <div className="text-gray-600 mb-4">
-              {previewText}...
-            </div>
-
-            {/* Show More Button */}
-            <button
-              onClick={() => setShowModal(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-            >
-              Show More
-            </button>
+            {/* Show More/Show Less */}
+            {showMoreRequired && (
+              <span
+                onClick={toggleExpandText}
+                className="text-blue-500 cursor-pointer"
+              >
+                {isExpanded ? "Show More" : "Show Less"}
+              </span>
+            )}
           </div>
         </ResizableBox>
-
-        <Modal
-          isOpen={showModal}
-          onRequestClose={() => setShowModal(false)}
-          style={modalStyles}
-        >
-          <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">{title}</h2>
-            <p className="text-gray-800 mb-4">{text}</p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            >
-              Close
-            </button>
-          </div>
-        </Modal>
       </div>
     </Draggable>
   );
