@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Card from "./Card";
+import Connection from "./Connection";
 
 const Canvas = () => {
   const [cardsData, setCardsData] = useState([]);
+  const [cardPositions, setCardPositions] = useState([]);
+  const [connections, setConnections] = useState([]);
 
   const handleCreateCard = () => {
     const newCardId = `card${cardsData.length + 1}`;
@@ -14,8 +17,37 @@ const Canvas = () => {
     setCardsData([...cardsData, newCard]);
   };
 
+  const updateCardPosition = (id, newPosition) => {
+    setCardPositions((prevPositions) => {
+      const existingPosition = prevPositions.find((pos) => pos.id === id);
+      if (existingPosition) {
+        existingPosition.position = newPosition;
+      } else {
+        prevPositions.push({ id, position: newPosition });
+      }
+      return [...prevPositions];
+    });
+  };
+
+  useEffect(() => {
+    // Example connection logic: Connect every card with the next one
+    const newConnections = [];
+    for (let i = 0; i < cardPositions.length - 1; i++) {
+      const start = [
+        cardPositions[i].position.x + 50, // Center of the card
+        cardPositions[i].position.y + 50, // Center of the card
+      ];
+      const end = [
+        cardPositions[i + 1].position.x + 50,
+        cardPositions[i + 1].position.y + 50,
+      ];
+      newConnections.push({ start, end });
+    }
+    setConnections(newConnections);
+  }, [cardPositions]);
+
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="relative flex flex-col h-full p-4">
       {/* Create Card Button */}
       <div className="mb-4">
         <a
@@ -36,6 +68,15 @@ const Canvas = () => {
         </a>
       </div>
 
+      {/* Render Connections */}
+      {connections.map((connection, index) => (
+        <Connection
+          key={index}
+          start={connection.start}
+          end={connection.end}
+        />
+      ))}
+
       {/* Render Cards */}
       <div className="flex flex-wrap gap-4">
         {cardsData.map((card) => (
@@ -44,6 +85,7 @@ const Canvas = () => {
             id={card.id}
             title={card.title}
             text={card.text}
+            onPositionChange={(newPosition) => updateCardPosition(card.id, newPosition)}
           />
         ))}
       </div>

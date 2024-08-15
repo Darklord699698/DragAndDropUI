@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
 
-const Card = ({ id, initialTitle = "", initialText = "" }) => {
+const Card = ({ id, initialTitle = "", initialText = "", onPositionChange }) => {
   const [title, setTitle] = useState(initialTitle);
   const [text, setText] = useState(initialText);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const cardRef = useRef(null);
 
   const toggleExpandText = () => {
     setIsExpanded(!isExpanded);
@@ -14,9 +16,26 @@ const Card = ({ id, initialTitle = "", initialText = "" }) => {
 
   const showMoreRequired = text.length > 100; // Adjust this length to suit your needs
 
+  useEffect(() => {
+    if (cardRef.current && onPositionChange) {
+      const { x, y } = cardRef.current.getBoundingClientRect();
+      onPositionChange({ x, y });
+    }
+  }, [onPositionChange]);
+
   return (
-    <Draggable>
-      <div className="flex flex-col w-64 h-auto overflow-hidden bg-white shadow-lg rounded-3xl">
+    <Draggable
+      onStop={() => {
+        if (cardRef.current && onPositionChange) {
+          const { x, y } = cardRef.current.getBoundingClientRect();
+          onPositionChange({ x, y });
+        }
+      }}
+    >
+      <div
+        ref={cardRef}
+        className="flex flex-col w-64 h-auto overflow-hidden bg-white shadow-lg rounded-3xl"
+      >
         {/* Heading Bar */}
         <div className="flex items-center justify-between p-3 text-white bg-gray-800 rounded-t-3xl">
           <input
